@@ -9,9 +9,18 @@ using namespace std;
 
 const int PLAYER_ID = 0;
 
+const int MAX_B = 100;
+
 int g_currentTime;
 int g_baseCount;
 int g_speed;
+int g_baseTime[MAX_B][MAX_B];
+
+double calcDist(int y1, int x1, int y2, int x2) {
+  double dy = y1 - y2;
+  double dx = x1 - x2;
+  return sqrt(dy*dy + dx*dx);
+}
 
 struct Base {
     int y;
@@ -67,6 +76,8 @@ public:
         g_speed = speed;
         g_currentTime = 0;
 
+        fprintf(stderr, "B = %d, speed = %d\n", g_baseCount, g_speed);
+
         srand(123);
         B = baseLocations.size() / 2;
         for (int i = 0; i < B; ++i) {
@@ -80,6 +91,19 @@ public:
             baseX.push_back(baseLocations[2*i]);
             baseY.push_back(baseLocations[2*i+1]);
         }
+
+        for (int fromId = 0; fromId < g_baseCount; fromId++) {
+          Base *from = getBase(fromId);
+          for (int toId = fromId+1; toId < g_baseCount; toId++) {
+            Base *to = getBase(toId);
+            double dist = calcDist(from->y, from->x, to->y, to->x);
+            int T = ceil(dist / g_speed);
+
+            g_baseTime[fromId][toId] = T;
+            g_baseTime[toId][fromId] = T;
+          }
+        }
+        
         return 0;
     }
 
