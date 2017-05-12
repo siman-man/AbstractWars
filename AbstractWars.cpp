@@ -9,6 +9,10 @@ using namespace std;
 
 const int PLAYER_ID = 0;
 
+int g_currentTime;
+int g_baseCount;
+int g_speed;
+
 struct Base {
     int y;
     int x;
@@ -17,15 +21,41 @@ struct Base {
     int growthRate;
 };
 
-struct Troop {
-    int target;
-    int size;
-    int remainTime;
-};
-
 vector<Base> g_baseList;
-int g_baseCount;
-int g_speed;
+
+struct Troop {
+    int owner;
+    int source;
+    int target;
+    int y;
+    int x;
+    int size;
+    int arrivalTime;
+    int created_at;
+
+    Troop () {
+      this->owner = -1;
+      this->source = -1;
+      this->target = -1;
+      this->y = -1;
+      this->x = -1;
+      this->size = -1;
+      this->arrivalTime = -1;
+      this->created_at = -1;
+    }
+
+    void updateStep() {
+      if (this->arrivalTime == g_currentTime) {
+        return;
+      }
+      // if the troop has not arrived yet, approximate its position based on time it moved
+      double partMoved = (g_currentTime - this->created_at) * 1.0 / (this->arrivalTime - this->created_at);
+      double x = g_baseList[this->source].x + (g_baseList[this->target].x - g_baseList[this->source].x) * partMoved;
+      double y = g_baseList[this->source].y + (g_baseList[this->target].y - g_baseList[this->source].y) * partMoved;
+      this->x = (int)x;
+      this->y = (int)y;
+    }
+};
 
 class AbstractWars {
 public:
@@ -35,6 +65,7 @@ public:
     int init(vector <int> baseLocations, int speed) {
         g_baseCount = baseLocations.size() / 2;
         g_speed = speed;
+        g_currentTime = 0;
 
         srand(123);
         B = baseLocations.size() / 2;
@@ -93,7 +124,9 @@ public:
     }
     // ----------------------------------------------
     vector <int> sendTroops(vector <int> bases, vector <int> troops) {
+        g_currentTime++;
         updateBaseData(bases);
+        updateTroopData(troops);
         // compile the list of bases owned by other players
         others.resize(0);
         for (int i = 0; i < B; ++i)
