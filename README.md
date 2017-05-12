@@ -137,6 +137,8 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 - [x] 軍隊情報を構造化
 - [x] 基地の情報を更新する
 - [x] 各基地への到達距離を調べる
+- [ ] 各基地の `growthRate` を求める
+- [ ] 敵の `power` を求める
 - [ ] シミュレータのコードからどの基地からどの基地に向かう時に最初の座標を調べる
 - [ ] どの軍隊がどこに向かっているかを調べる
 - [ ] 軍隊を生成した時の処理を記述する
@@ -161,6 +163,28 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 * 敵の基地に到達した場合は戦闘処理が行われる
 
 
+## 敵AIの行動
+
+### 初期化
+
+* attackT を決める
+* locality を決める
+
+### 戦闘中
+
+* 自分の基地じゃないものを `others` に追加する
+  * 全てが自分の基地になった場合は何も行動を行わない
+
+* 自分の基地でかつ、軍隊の数が attackT を超えた場合に基地の攻撃を行う
+
+#### 基地の選び方
+
+* 周辺の基地 `others` から probs値 を計算し、その合計の sp 値を求める
+  * それぞれの `probs` 値は pow(1 / (dy*dy + dx*dx), locality) から計算される
+
+* その後、sp * ランダム値 から計算された閾値 r を設定し、各基地の probs を合計していき、その値が閾値を超えた時の基地を攻撃する
+  * `probs` の値が高いほど、攻撃の対象になりやすい
+
 
 ## 考察
 
@@ -168,3 +192,5 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 複数の敵が存在する場合に、どの順番で倒すべきか
 同時期に同じ基地から軍隊を生成することは可能
 1 step で生成出来る軍隊の数は最大で B (マップ上に存在する基地の数)
+敵AIは attackT を超えた際に必ず攻撃してくるので、それを先読みして攻撃を行う
+敵AIは自軍に対する増援行為を行わない
