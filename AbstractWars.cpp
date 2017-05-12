@@ -17,19 +17,38 @@ struct Base {
     int growthRate;
 };
 
+vector<Base> g_baseList;
+int g_baseCount;
+
 class AbstractWars {
 public:
     int B;
     vector<int> baseX, baseY;
     // ----------------------------------------------
     int init(vector <int> baseLocations, int speed) {
+        g_baseCount = baseLocations.size() / 2;
         srand(123);
         B = baseLocations.size() / 2;
         for (int i = 0; i < B; ++i) {
+            Base base;
+            base.x = baseLocations[2*i];
+            base.y = baseLocations[2*i+1];
+            base.owner = -1;
+            base.size = 0;
+            base.growthRate = 1;
+            g_baseList.push_back(base);
             baseX.push_back(baseLocations[2*i]);
             baseY.push_back(baseLocations[2*i+1]);
         }
         return 0;
+    }
+
+    void updateBaseData(vector<int> &bases) {
+        for (int i = 0; i < g_baseCount; i++) {
+            Base* base = getBase(i);
+            base->owner = bases[2*i];
+            base->size = bases[2*i+1];
+        }
     }
     // ----------------------------------------------
     vector<int> others;
@@ -54,6 +73,7 @@ public:
     }
     // ----------------------------------------------
     vector <int> sendTroops(vector <int> bases, vector <int> troops) {
+        updateBaseData(bases);
         // compile the list of bases owned by other players
         others.resize(0);
         for (int i = 0; i < B; ++i)
@@ -74,42 +94,32 @@ public:
         }
         return att;
     }
+
+    Base *getBase(int id) {
+        return &g_baseList[id];
+    }
 };
 // -------8<------- end of solution submitted to the website -------8<-------
 
-template<class T> void getVector(vector<T>& v) {
-    for (int i = 0; i < v.size(); ++i)
-        cin >> v[i];
-}
+template<class T> void getVector(vector<T>& v) { for (int i = 0; i < v.size(); ++i) cin >> v[i]; }
 
 int main() {
     AbstractWars aw;
-    int N;
-    cin >> N;
+    int N; cin >> N;
     vector<int> baseLoc(N);
     getVector(baseLoc);
-    int S;
-    cin >> S;
-
+    int S; cin >> S;
     int retInit = aw.init(baseLoc, S);
-    cout << retInit << endl;
-    cout.flush();
-
+    cout << retInit << endl; cout.flush();
     for (int st = 0; st < 2000; ++st) {
-        int B;
-        cin >> B;
+        int B; cin >> B;
         vector<int> bases(B);
         getVector(bases);
-        int T;
-        cin >> T;
-        vector<int> troops(T);
-        getVector(troops);
-
+        int T; cin >> T;
+        vector<int> troops(T); getVector(troops);
         vector<int> ret = aw.sendTroops(bases, troops);
         cout << ret.size() << endl;
-        for (int i = 0; i < (int)ret.size(); ++i) {
-            cout << ret[i] << endl;
-        }
+        for (int i = 0; i < (int)ret.size(); ++i) { cout << ret[i] << endl; }
         cout.flush();
     }
 }

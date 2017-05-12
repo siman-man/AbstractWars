@@ -132,6 +132,9 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 
 ## 戦略
 
+- [x] 基地の初期化を行う
+- [x] 毎ターンの基地情報の更新
+- [ ] 軍隊情報を構造化
 - [ ] どの軍隊がどこに向かっているかを調べる
 - [ ] 軍隊の情報を更新する
 - [ ] 基地の情報を更新する
