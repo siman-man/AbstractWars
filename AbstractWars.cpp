@@ -17,8 +17,15 @@ struct Base {
     int growthRate;
 };
 
+struct Troop {
+    int target;
+    int size;
+    int remainTime;
+};
+
 vector<Base> g_baseList;
 int g_baseCount;
+int g_speed;
 
 class AbstractWars {
 public:
@@ -27,6 +34,8 @@ public:
     // ----------------------------------------------
     int init(vector <int> baseLocations, int speed) {
         g_baseCount = baseLocations.size() / 2;
+        g_speed = speed;
+
         srand(123);
         B = baseLocations.size() / 2;
         for (int i = 0; i < B; ++i) {
@@ -48,6 +57,17 @@ public:
             Base* base = getBase(i);
             base->owner = bases[2*i];
             base->size = bases[2*i+1];
+        }
+    }
+
+    void updateTroopData(vector<int> &troops) {
+        int tsize = troops.size() / 4;
+
+        for (int i = 0; i < tsize; i++) {
+            int owner = troops[4*i];
+            int size = troops[4*i+1];
+            int x = troops[4*i+2];
+            int y = troops[4*i+3];
         }
     }
     // ----------------------------------------------
