@@ -178,7 +178,7 @@ public:
 
         vector<int> att;
         for (int i = 0; i < B; ++i) {
-            if (bases[2*i] == 0 && bases[2*i+1] > 1000 * 2 / 3) {
+            if (bases[2*i] == 0 && bases[2*i+1] >= 1000) {
                 // send troops to a random base of different ownership
                 att.push_back(i);
                 att.push_back(getRandomBase(i));
