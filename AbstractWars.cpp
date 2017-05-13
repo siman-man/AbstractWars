@@ -66,6 +66,7 @@ struct Base {
     int size;
     int growthRate;
     int sizeHistory[SIMULATION_TIME];
+    int attackHistory[SIMULATION_TIME];
 
     Base() {
         this->y = -1;
@@ -74,20 +75,27 @@ struct Base {
         this->size = -1;
         this->growthRate = -1;
         memset(this->sizeHistory, -1, sizeof(this->sizeHistory));
+        memset(this->attackHistory, 0, sizeof(this->attackHistory));
     }
 
     void updateFutureSize() {
         int s = this->size;
         int attackT = (g_ownerList[this->owner].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
+        bool occupy = false;
 
         for (int i = g_currentTime + 1; i < min(g_currentTime + 300, SIMULATION_TIME); i++) {
             s += this->growthRate + s / 100;
+            s -= this->attackHistory[i];
+
+            if (s < 0) {
+                occupy = true;
+            }
 
             if (s >= attackT) {
                 s /= 2;
             }
 
-            this->sizeHistory[i] = s;
+            this->sizeHistory[i] = (occupy) ? -1 : s;
         }
     }
 };
@@ -260,7 +268,7 @@ public:
             int T = g_baseTime[sourceInd][ind];
             int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
 
-            if (osize == -1) continue;
+            if (osize < 0) continue;
 
             if (minDist > dist && osize < source->size * 0.5) {
                 minDist = dist;
@@ -305,6 +313,9 @@ public:
                 if (targetId != -1) {
                     att.push_back(i);
                     att.push_back(targetId);
+
+                    int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
+                    g_baseList[targetId].attackHistory[arrivalTime] += g_baseList[i].size / 2;
                 }
             }
         }
