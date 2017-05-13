@@ -73,6 +73,10 @@ struct Troop {
       this->x = (int)x;
       this->y = (int)y;
     }
+
+    string hash() {
+        return to_string(this->owner) + ":" + to_string(this->y) + ":" + to_string(this->x);
+    }
 };
 
 class AbstractWars {
