@@ -1,6 +1,7 @@
 // C++11
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -28,6 +29,14 @@ struct Base {
     int owner;
     int size;
     int growthRate;
+
+    Base () {
+      this->y = -1;
+      this->x = -1;
+      this->owner = -1;
+      this->size = -1;
+      this->growthRate = -1;
+    }
 };
 
 vector<Base> g_baseList;
@@ -84,9 +93,6 @@ public:
             Base base;
             base.x = baseLocations[2*i];
             base.y = baseLocations[2*i+1];
-            base.owner = -1;
-            base.size = 0;
-            base.growthRate = 1;
             g_baseList.push_back(base);
             baseX.push_back(baseLocations[2*i]);
             baseY.push_back(baseLocations[2*i+1]);
@@ -103,7 +109,7 @@ public:
             g_baseTime[toId][fromId] = T;
           }
         }
-        
+
         return 0;
     }
 
@@ -111,6 +117,11 @@ public:
         for (int i = 0; i < g_baseCount; i++) {
             Base* base = getBase(i);
             base->owner = bases[2*i];
+
+            if (g_currentTime == 2) {
+              base->growthRate = bases[2*i+1] - base->size;
+            }
+
             base->size = bases[2*i+1];
         }
     }
