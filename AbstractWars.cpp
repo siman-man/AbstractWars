@@ -202,6 +202,17 @@ public:
         }
     }
 
+    Coord updateTroopCoord(int from, int to, int time) {
+        assert(time > 0);
+
+        int T = g_baseTime[from][to];
+        double partMoved = time * 1.0 / T;
+        double x = g_baseList[from].x + (g_baseList[to].x - g_baseList[from].x) * partMoved;
+        double y = g_baseList[from].y + (g_baseList[to].y - g_baseList[from].y) * partMoved;
+
+        return Coord((int) y, (int) x);
+    }
+
     // ----------------------------------------------
     vector<int> others;
 
