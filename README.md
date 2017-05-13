@@ -168,6 +168,7 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 ### 初期化
 
 * attackT を決める
+  * `attackT = TestCase.PERSON_CAP / 2 + rnd.nextInt(TestCase.PERSON_CAP / 2);` で求められる。[500 - 999] の間のどれか
 * locality を決める
 
 ### 戦闘中
@@ -188,9 +189,20 @@ it is reduced to 1000. Coordinates of troop positions are updated based on their
 
 ## 考察
 
-基地によって軍隊の増加率が異なる
-複数の敵が存在する場合に、どの順番で倒すべきか
-同時期に同じ基地から軍隊を生成することは可能
-1 step で生成出来る軍隊の数は最大で B (マップ上に存在する基地の数)
-敵AIは attackT を超えた際に必ず攻撃してくるので、それを先読みして攻撃を行う
-敵AIは自軍に対する増援行為を行わない
+* 敵の軍隊のサイズの 1.2 倍の数で戦えば必ず占領出来る
+* 基地によって軍隊の増加率が異なる
+* 複数の敵が存在する場合に、どの順番で倒すべきか
+* 同時期に同じ基地から軍隊を生成することは可能
+* 1 step で生成出来る軍隊の数は最大で B (マップ上に存在する基地の数)
+* 敵AIは attackT を超えた際に必ず攻撃してくるので、それを先読みして攻撃を行う
+* 敵AIは自軍に対する増援行為を行わない
+* 敵は基地の戦力が最低でも500貯まるまでは攻撃してこない
+* 敵同士の相打ちも考慮に入れる
+* フィールドサイズは600
+
+
+### どのように基地を攻略していくか
+
+* 近場の基地から攻略したい
+  * growthRateが高い基地から攻略したい
+* `size + (growthRate + size/100) * T * 1.2 < size` の時に攻略可能
