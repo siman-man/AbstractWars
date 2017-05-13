@@ -28,7 +28,7 @@ struct Coord {
     int y;
     int x;
 
-    Coord() {
+    Coord(int y, int x) {
         this->y = y;
         this->x = x;
     }
