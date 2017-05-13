@@ -14,6 +14,7 @@ const int MAX_B = 100;
 
 int g_currentTime;
 int g_baseCount;
+int g_ownerCount;
 int g_speed;
 int g_baseTime[MAX_B][MAX_B];
 
@@ -22,6 +23,26 @@ double calcDist(int y1, int x1, int y2, int x2) {
     double dx = x1 - x2;
     return sqrt(dy * dy + dx * dx);
 }
+
+struct Owner {
+    double power;
+    int baseCount;
+    int totalAttackT;
+    int attackUpdateCount;
+
+    Owner() {
+        this->power = -1.0;
+        this->baseCount = -1;
+        this->totalAttackT = 0;
+        this->attackUpdateCount = 0;
+    }
+
+    int attackT() {
+        return this->totalAttackT / this->attackUpdateCount;
+    }
+};
+
+vector <Owner> g_ownerList;
 
 struct Base {
     int y;
@@ -90,6 +111,7 @@ public:
         g_baseCount = baseLocations.size() / 2;
         g_speed = speed;
         g_currentTime = 0;
+        g_ownerCount = 0;
 
         fprintf(stderr, "B = %d, speed = %d\n", g_baseCount, g_speed);
 
@@ -122,13 +144,40 @@ public:
     void updateBaseData(vector<int> &bases) {
         for (int i = 0; i < g_baseCount; i++) {
             Base *base = getBase(i);
-            base->owner = bases[2 * i];
+            int ownerId = bases[2 * i];
+            int size = bases[2 * i + 1];
+            base->owner = ownerId;
+
+            if (g_currentTime == 1) {
+                g_ownerCount = max(g_ownerCount, ownerId);
+            }
 
             if (g_currentTime == 2) {
-                base->growthRate = bases[2 * i + 1] - base->size;
+                base->growthRate = size - base->size;
+            }
+
+            if (g_currentTime > 1 && ownerId != PLAYER_ID && base->size > size) {
+                Owner *owner = getOwner(ownerId);
+
+                if (abs(base->size - 2 * size) <= 15) {
+                    owner->totalAttackT += base->size;
+                    owner->attackUpdateCount++;
+                }
             }
 
             base->size = bases[2 * i + 1];
+        }
+
+        if (g_currentTime == 1) {
+            fprintf(stderr, "OwnerCount: %d\n", g_ownerCount + 1);
+
+            for (int i = 0; i <= g_ownerCount; i++) {
+                Owner owner;
+                if (i == PLAYER_ID) {
+                    owner.power = 1.0;
+                }
+                g_ownerList.push_back(owner);
+            }
         }
     }
 
@@ -194,6 +243,10 @@ public:
 
     Base *getBase(int id) {
         return &g_baseList[id];
+    }
+
+    Owner *getOwner(int id) {
+        return &g_ownerList[id];
     }
 };
 // -------8<------- end of solution submitted to the website -------8<-------
