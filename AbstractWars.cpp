@@ -75,7 +75,7 @@ struct Troop {
     }
 
     string hash() {
-        return to_string(this->owner) + ":" + to_string(this->y) + ":" + to_string(this->x);
+        return to_string(this->owner) + ":" + to_string(this->y) + ":" + to_string(this->x) + ":" + to_string(this->size);
     }
 };
 
