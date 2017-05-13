@@ -24,6 +24,16 @@ double calcDist(int y1, int x1, int y2, int x2) {
     return sqrt(dy * dy + dx * dx);
 }
 
+struct Coord {
+    int y;
+    int x;
+
+    Coord() {
+        this->y = y;
+        this->x = x;
+    }
+};
+
 struct Owner {
     double power;
     int baseCount;
