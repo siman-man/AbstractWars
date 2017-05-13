@@ -10,13 +10,14 @@ using namespace std;
 
 const int PLAYER_ID = 0;
 
-const int MAX_B = 100;
+const int SIMULATION_TIME = 2010;
+const int MAX_BASE_COUNT = 100;
 
 int g_currentTime;
 int g_baseCount;
 int g_ownerCount;
 int g_speed;
-int g_baseTime[MAX_B][MAX_B];
+int g_baseTime[MAX_BASE_COUNT][MAX_BASE_COUNT];
 
 double calcDist(int y1, int x1, int y2, int x2) {
     double dy = y1 - y2;
@@ -48,7 +49,11 @@ struct Owner {
     }
 
     int attackT() {
-        return this->totalAttackT / this->attackUpdateCount;
+        if (this->attackUpdateCount == 0) {
+            return -1;
+        } else {
+            return this->totalAttackT / this->attackUpdateCount;
+        }
     }
 };
 
@@ -60,6 +65,7 @@ struct Base {
     int owner;
     int size;
     int growthRate;
+    int sizeHistory[SIMULATION_TIME];
 
     Base() {
         this->y = -1;
@@ -67,6 +73,22 @@ struct Base {
         this->owner = -1;
         this->size = -1;
         this->growthRate = -1;
+        memset(this->sizeHistory, -1, sizeof(this->sizeHistory));
+    }
+
+    void updateFutureSize() {
+        int s = this->size;
+        int attackT = (g_ownerList[this->owner].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
+
+        for (int i = g_currentTime + 1; i < min(g_currentTime + 300, SIMULATION_TIME); i++) {
+            s += this->growthRate + s / 100;
+
+            if (s >= attackT) {
+                s /= 2;
+            }
+
+            this->sizeHistory[i] = s;
+        }
     }
 };
 
@@ -157,6 +179,7 @@ public:
             int ownerId = bases[2 * i];
             int size = bases[2 * i + 1];
             base->owner = ownerId;
+            base->sizeHistory[g_currentTime] = size;
 
             if (g_currentTime == 1) {
                 g_ownerCount = max(g_ownerCount, ownerId);
@@ -176,6 +199,10 @@ public:
             }
 
             base->size = bases[2 * i + 1];
+
+            if (g_currentTime > 1 && base->owner != PLAYER_ID) {
+                base->updateFutureSize();
+            }
         }
 
         if (g_currentTime == 1) {
@@ -218,20 +245,38 @@ public:
 
     // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int getRandomBase(int sourceInd) {
+        Base *source = getBase(sourceInd);
         vector<double> probs(others.size());
         double sp = 0;
+        int targetId = -1;
+        int minDist = INT_MAX;
+
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
+            Base *base = getBase(ind);
             probs[i] = 1 / (pow(baseX[sourceInd] - baseX[ind], 2) + pow(baseY[sourceInd] - baseY[ind], 2));
             sp += probs[i];
+            double dist = calcDist(source->y, source->x, base->y, base->x);
+            int T = g_baseTime[sourceInd][ind];
+            int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
+
+            if (osize == -1) continue;
+
+            if (minDist > dist && osize < source->size * 0.5) {
+                minDist = dist;
+                targetId = ind;
+            }
         }
+
+        return targetId;
 
         double r = rand() * 1.0 / RAND_MAX * sp;
         double s = 0;
         for (int i = 0; i < (int) others.size(); ++i) {
             s += probs[i];
-            if (s >= r)
+            if (s >= r) {
                 return others[i];
+            }
         }
         return others[others.size() - 1];
     }
@@ -255,8 +300,12 @@ public:
         for (int i = 0; i < B; ++i) {
             if (bases[2 * i] == 0 && bases[2 * i + 1] >= 1000) {
                 // send troops to a random base of different ownership
-                att.push_back(i);
-                att.push_back(getRandomBase(i));
+                int targetId = getRandomBase(i);
+
+                if (targetId != -1) {
+                    att.push_back(i);
+                    att.push_back(targetId);
+                }
             }
         }
         return att;
