@@ -270,9 +270,6 @@ public:
 
         map<string, bool> troopMap;
 
-        int esize = g_enemyTroopList.size();
-        fprintf(stderr, "esize = %d\n", esize);
-
         for (int i = 0; i < g_enemyTroopList.size(); i++) {
             Troop *troop = &g_enemyTroopList[i];
             troop->updateStep();
@@ -307,20 +304,20 @@ public:
                 if (b1) {
                     Base *base = getBase(at.target);
 
-                    if (base->attackedTime >= g_currentTime) {
-                        base->attackedTime = min(base->attackedTime, g_currentTime + at.arrivalTime);
-                    } else {
-                        base->attackedTime = g_currentTime + at.arrivalTime;
-                    }
-
                     if (atl.size() == 2) {
                         troop.source = at.source;
                         troop.target = at.target;
                         troop.arrivalTime = g_currentTime + at.arrivalTime;
                         troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
                         g_enemyTroopList.push_back(troop);
-                        fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source,
-                                at.target, troop.size);
+
+                        if (base->attackedTime >= g_currentTime) {
+                            base->attackedTime = min(base->attackedTime, troop.arrivalTime);
+                        } else {
+                            base->attackedTime = troop.arrivalTime;
+                        }
+
+                        // fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source, at.target, troop.size);
                     }
                 }
             }
