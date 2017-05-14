@@ -54,6 +54,16 @@ struct AttackLine {
     }
 };
 
+struct AttackData {
+    int owner;
+    int size;
+
+    AttackData(int owner, int size) {
+        this->owner = owner;
+        this->size = size;
+    }
+};
+
 vector <AttackLine> g_attackField[S][S];
 
 struct Owner {
@@ -90,7 +100,8 @@ struct Base {
     int growthRate;
     int attackedTime;
     int sizeHistory[SIMULATION_TIME];
-    int attackHistory[SIMULATION_TIME];
+    int ownerHistory[SIMULATION_TIME];
+    vector <AttackData> attackHistory[SIMULATION_TIME];
 
     Base() {
         this->y = -1;
@@ -100,27 +111,33 @@ struct Base {
         this->growthRate = -1;
         this->attackedTime = -1;
         memset(this->sizeHistory, -1, sizeof(this->sizeHistory));
-        memset(this->attackHistory, 0, sizeof(this->attackHistory));
     }
 
     void updateFutureSize() {
         int s = this->size;
+        int o = this->owner;
         int attackT = (g_ownerList[this->owner].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
-        bool occupy = false;
 
         for (int i = g_currentTime + 1; i < min(g_currentTime + 300, SIMULATION_TIME); i++) {
             s += this->growthRate + s / 100;
-            s -= this->attackHistory[i];
 
-            if (s < 0) {
-                occupy = true;
+            for (int j = 0; j < this->attackHistory[i].size(); j++) {
+                AttackData at = this->attackHistory[i][j];
+                s -= at.size;
+
+                if (s < 0) {
+                    o = at.owner;
+                    attackT = g_ownerList[o].attackT();
+                    s *= -1;
+                }
             }
 
             if (s >= attackT) {
                 s /= 2;
             }
 
-            this->sizeHistory[i] = (occupy) ? -1 : s;
+            this->sizeHistory[i] = s;
+            this->ownerHistory[i] = o;
         }
     }
 };
@@ -225,6 +242,7 @@ public:
             int size = bases[2 * i + 1];
             base->owner = ownerId;
             base->sizeHistory[g_currentTime] = size;
+            base->ownerHistory[g_currentTime] = ownerId;
 
             if (g_currentTime == 1) {
                 g_ownerCount = max(g_ownerCount, ownerId);
@@ -310,6 +328,8 @@ public:
                         troop.arrivalTime = g_currentTime + at.arrivalTime;
                         troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
                         g_enemyTroopList.push_back(troop);
+                        g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
+                                AttackData(troop.owner, troop.size));
 
                         if (base->attackedTime >= g_currentTime) {
                             base->attackedTime = min(base->attackedTime, troop.arrivalTime);
@@ -363,9 +383,10 @@ public:
             Base *base = getBase(ind);
             double dist = calcDist(source->y, source->x, base->y, base->x);
             int T = g_baseTime[sourceInd][ind];
-            int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
+            int owner = g_baseList[ind].ownerHistory[min(g_currentTime + T, SIMULATION_TIME)];
 
-            if (osize < 0) continue;
+            if (owner == PLAYER_ID) continue;
+            int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
 
             if (minDist > dist && (!warning || osize < source->size * 0.5)) {
                 minDist = dist;
@@ -394,6 +415,8 @@ public:
 
         vector<int> att;
         for (int i = 0; i < B; ++i) {
+            Base *base = getBase(i);
+
             if (bases[2 * i] == 0 && bases[2 * i + 1] >= 1000) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
@@ -403,7 +426,7 @@ public:
                     att.push_back(targetId);
 
                     int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
-                    g_baseList[targetId].attackHistory[arrivalTime] += g_baseList[i].size / 2;
+                    g_baseList[targetId].attackHistory[arrivalTime].push_back(AttackData(PLAYER_ID, base->size / 2));
                 }
             }
         }
