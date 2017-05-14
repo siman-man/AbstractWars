@@ -324,10 +324,6 @@ public:
         int minDist = INT_MAX;
         bool warning = (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30);
 
-        if (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30) {
-            //return -1;
-        }
-
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
             Base *base = getBase(ind);
@@ -346,16 +342,6 @@ public:
         }
 
         return targetId;
-
-        double r = rand() * 1.0 / RAND_MAX * sp;
-        double s = 0;
-        for (int i = 0; i < (int) others.size(); ++i) {
-            s += probs[i];
-            if (s >= r) {
-                return others[i];
-            }
-        }
-        return others[others.size() - 1];
     }
 
     // ----------------------------------------------
