@@ -86,6 +86,7 @@ struct Base {
     int owner;
     int size;
     int growthRate;
+    int attackedTime;
     int sizeHistory[SIMULATION_TIME];
     int attackHistory[SIMULATION_TIME];
 
@@ -95,6 +96,7 @@ struct Base {
         this->owner = -1;
         this->size = -1;
         this->growthRate = -1;
+        this->attackedTime = -1;
         memset(this->sizeHistory, -1, sizeof(this->sizeHistory));
         memset(this->attackHistory, 0, sizeof(this->attackHistory));
     }
@@ -265,8 +267,6 @@ public:
 
         if (g_currentTime <= 5) return;
 
-        fprintf(stderr, "%4d: updateTroopData =>\n", g_currentTime);
-
         for (int i = 0; i < tsize; i++) {
             int owner = troops[4 * i];
             int size = troops[4 * i + 1];
@@ -288,7 +288,14 @@ public:
                 bool b1 = g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1];
 
                 if (b1) {
-                    fprintf(stderr, "Owner %d attack: %d -> %d (%d)\n", owner, at.source, at.target, size);
+                    Base *base = getBase(at.target);
+
+                    if (base->attackedTime >= g_currentTime) {
+                        base->attackedTime = min(base->attackedTime, g_currentTime + at.arrivalTime);
+                    } else {
+                        base->attackedTime = g_currentTime + at.arrivalTime;
+                    }
+                    //fprintf(stderr, "Owner %d attack: %d -> %d (%d)\n", owner, at.source, at.target, size);
                 }
             }
         }
@@ -315,6 +322,11 @@ public:
         double sp = 0;
         int targetId = -1;
         int minDist = INT_MAX;
+        bool warning = (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30);
+
+        if (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30) {
+            //return -1;
+        }
 
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
@@ -327,7 +339,7 @@ public:
 
             if (osize < 0) continue;
 
-            if (minDist > dist && osize < source->size * 0.5) {
+            if (minDist > dist && (!warning || osize < source->size * 0.5)) {
                 minDist = dist;
                 targetId = ind;
             }
