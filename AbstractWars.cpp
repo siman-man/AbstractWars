@@ -354,8 +354,6 @@ public:
     // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int getRandomBase(int sourceInd) {
         Base *source = getBase(sourceInd);
-        vector<double> probs(others.size());
-        double sp = 0;
         int targetId = -1;
         int minDist = INT_MAX;
         bool warning = (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30);
@@ -363,8 +361,6 @@ public:
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
             Base *base = getBase(ind);
-            probs[i] = 1 / (pow(baseX[sourceInd] - baseX[ind], 2) + pow(baseY[sourceInd] - baseY[ind], 2));
-            sp += probs[i];
             double dist = calcDist(source->y, source->x, base->y, base->x);
             int T = g_baseTime[sourceInd][ind];
             int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
