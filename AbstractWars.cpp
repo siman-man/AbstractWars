@@ -58,12 +58,14 @@ vector <AttackLine> g_attackField[S][S];
 struct Owner {
     double power;
     int baseCount;
+    int unitSize;
     int totalAttackT;
     int attackUpdateCount;
 
     Owner() {
         this->power = -1.0;
         this->baseCount = -1;
+        this->unitSize = -1;
         this->totalAttackT = 0;
         this->attackUpdateCount = 0;
     }
@@ -298,6 +300,19 @@ public:
         }
     }
 
+    void updateOwnerData() {
+        for (int i = 0; i <= g_ownerCount; i++) {
+            Owner *owner = getOwner(i);
+            owner->unitSize = 0;
+        }
+
+        for (int i = 0; i <= g_baseCount; i++) {
+            Base *base = getBase(i);
+
+            g_ownerList[base->owner].unitSize += base->size;
+        }
+    }
+
     Coord updateTroopCoord(int from, int to, int time) {
         assert(time > 0);
 
@@ -346,6 +361,7 @@ public:
         g_currentTime++;
         updateBaseData(bases);
         updateTroopData(troops);
+        updateOwnerData();
         // compile the list of bases owned by other players
         others.resize(0);
         for (int i = 0; i < B; ++i)
