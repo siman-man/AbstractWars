@@ -263,7 +263,7 @@ public:
 
             base->size = bases[2 * i + 1];
 
-            if (g_currentTime > 1 && base->owner != PLAYER_ID) {
+            if (g_currentTime > 1) {
                 base->updateFutureSize();
             }
         }
