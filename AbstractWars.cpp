@@ -411,8 +411,9 @@ public:
         vector<int> att;
         for (int i = 0; i < B; ++i) {
             Base *base = getBase(i);
+            if (base->size < 2) continue;
 
-            if (bases[2 * i] == 0 && bases[2 * i + 1] >= 1000) {
+            if (bases[2 * i] == 0 && (bases[2 * i + 1] >= 1000 || g_currentTime <= 20)) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
 
