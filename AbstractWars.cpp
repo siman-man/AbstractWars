@@ -12,12 +12,15 @@ const int PLAYER_ID = 0;
 
 const int SIMULATION_TIME = 2010;
 const int MAX_BASE_COUNT = 100;
+const int S = 600;
 
 int g_currentTime;
 int g_baseCount;
 int g_ownerCount;
 int g_speed;
 int g_baseTime[MAX_BASE_COUNT][MAX_BASE_COUNT];
+bool g_attackCheck[MAX_BASE_COUNT][MAX_BASE_COUNT][SIMULATION_TIME];
+bool g_troopCheck[S][S][SIMULATION_TIME];
 
 double calcDist(int y1, int x1, int y2, int x2) {
     double dy = y1 - y2;
@@ -34,6 +37,24 @@ struct Coord {
         this->x = x;
     }
 };
+
+struct AttackLine {
+    int source;
+    int target;
+    int beforeY;
+    int beforeX;
+    int arrivalTime;
+
+    AttackLine(int source, int target, int beforeY, int beforeX, int arrivalTime) {
+        this->source = source;
+        this->target = target;
+        this->beforeY = beforeY;
+        this->beforeX = beforeX;
+        this->arrivalTime = arrivalTime;
+    }
+};
+
+vector <AttackLine> g_attackField[S][S];
 
 struct Owner {
     double power;
@@ -178,6 +199,19 @@ public:
             }
         }
 
+        for (int fromId = 0; fromId < g_baseCount; fromId++) {
+            for (int targetId = 0; targetId < g_baseCount; targetId++) {
+                if (fromId == targetId) continue;
+
+                int T = g_baseTime[fromId][targetId];
+                for (int t = 2; t < T; t++) {
+                    Coord coord = updateTroopCoord(fromId, targetId, t);
+                    Coord bcoord = updateTroopCoord(fromId, targetId, t - 1);
+                    g_attackField[coord.y][coord.x].push_back(AttackLine(fromId, targetId, bcoord.y, bcoord.x, T - t));
+                }
+            }
+        }
+
         return 0;
     }
 
@@ -229,11 +263,34 @@ public:
     void updateTroopData(vector<int> &troops) {
         int tsize = troops.size() / 4;
 
+        if (g_currentTime <= 5) return;
+
+        fprintf(stderr, "%4d: updateTroopData =>\n", g_currentTime);
+
         for (int i = 0; i < tsize; i++) {
             int owner = troops[4 * i];
             int size = troops[4 * i + 1];
             int x = troops[4 * i + 2];
             int y = troops[4 * i + 3];
+
+            if (owner == PLAYER_ID) continue;
+
+            g_troopCheck[y][x][g_currentTime] = true;
+            vector <AttackLine> atl = g_attackField[y][x];
+            int s = atl.size();
+
+            for (int j = 0; j < s; j++) {
+                AttackLine at = atl[j];
+                if (g_baseList[at.target].owner != PLAYER_ID) continue;
+
+                g_attackCheck[at.source][at.target][g_currentTime] = true;
+
+                bool b1 = g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1];
+
+                if (b1) {
+                    fprintf(stderr, "Owner %d attack: %d -> %d (%d)\n", owner, at.source, at.target, size);
+                }
+            }
         }
     }
 
