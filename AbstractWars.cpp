@@ -11,7 +11,7 @@ using namespace std;
 
 const int PLAYER_ID = 0;
 
-const int SIMULATION_TIME = 2010;
+const int SIMULATION_TIME = 2000;
 const int MAX_BASE_COUNT = 100;
 const int S = 600;
 
@@ -20,7 +20,7 @@ int g_baseCount;
 int g_ownerCount;
 int g_speed;
 int g_baseTime[MAX_BASE_COUNT][MAX_BASE_COUNT];
-bool g_troopCheck[S][S][SIMULATION_TIME];
+bool g_troopCheck[S][S][SIMULATION_TIME + 10];
 
 double calcDist(int y1, int x1, int y2, int x2) {
     double dy = y1 - y2;
@@ -99,9 +99,9 @@ struct Base {
     int size;
     int growthRate;
     int attackedTime;
-    int sizeHistory[SIMULATION_TIME];
-    int ownerHistory[SIMULATION_TIME];
-    vector <AttackData> attackHistory[SIMULATION_TIME];
+    int sizeHistory[SIMULATION_TIME + 10];
+    int ownerHistory[SIMULATION_TIME + 10];
+    vector <AttackData> attackHistory[SIMULATION_TIME + 10];
 
     Base() {
         this->y = -1;
@@ -127,7 +127,7 @@ struct Base {
 
                 if (s < 0) {
                     o = at.owner;
-                    attackT = g_ownerList[o].attackT();
+                    attackT = (g_ownerList[o].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
                     s *= -1;
                 }
             }
@@ -327,16 +327,18 @@ public:
                         troop.target = at.target;
                         troop.arrivalTime = g_currentTime + at.arrivalTime;
                         troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
-                        g_enemyTroopList.push_back(troop);
-                        g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
-                                AttackData(troop.owner, troop.size));
 
-                        if (base->attackedTime >= g_currentTime) {
-                            base->attackedTime = min(base->attackedTime, troop.arrivalTime);
-                        } else {
-                            base->attackedTime = troop.arrivalTime;
+                        if (troop.arrivalTime <= SIMULATION_TIME) {
+                            g_enemyTroopList.push_back(troop);
+                            g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
+                                    AttackData(troop.owner, troop.size));
+
+                            if (base->attackedTime >= g_currentTime) {
+                                base->attackedTime = min(base->attackedTime, troop.arrivalTime);
+                            } else {
+                                base->attackedTime = troop.arrivalTime;
+                            }
                         }
-
                         // fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source, at.target, troop.size);
                     }
                 }
