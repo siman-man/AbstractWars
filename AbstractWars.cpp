@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include <map>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -148,9 +149,6 @@ struct Troop {
     }
 
     void updateStep() {
-        if (this->arrivalTime == g_currentTime) {
-            return;
-        }
         // if the troop has not arrived yet, approximate its position based on time it moved
         double partMoved = (g_currentTime - this->created_at) * 1.0 / (this->arrivalTime - this->created_at);
         double x = g_baseList[this->source].x + (g_baseList[this->target].x - g_baseList[this->source].x) * partMoved;
@@ -164,6 +162,8 @@ struct Troop {
                to_string(this->size);
     }
 };
+
+vector <Troop> g_enemyTroopList;
 
 class AbstractWars {
 public:
@@ -268,21 +268,39 @@ public:
 
         if (g_currentTime <= 5) return;
 
+        map<string, bool> troopMap;
+
+        int esize = g_enemyTroopList.size();
+        fprintf(stderr, "esize = %d\n", esize);
+
+        for (int i = 0; i < g_enemyTroopList.size(); i++) {
+            Troop *troop = &g_enemyTroopList[i];
+            troop->updateStep();
+            troopMap[troop->hash()] = true;
+        }
+
+        g_enemyTroopList.erase(std::remove_if(g_enemyTroopList.begin(), g_enemyTroopList.end(),
+                                              [](Troop t) { return g_currentTime == t.arrivalTime; }),
+                               g_enemyTroopList.end());
+
         for (int i = 0; i < tsize; i++) {
-            int owner = troops[4 * i];
-            int size = troops[4 * i + 1];
-            int x = troops[4 * i + 2];
-            int y = troops[4 * i + 3];
+            Troop troop;
+            troop.owner = troops[4 * i];
+            troop.size = troops[4 * i + 1];
+            troop.x = troops[4 * i + 2];
+            troop.y = troops[4 * i + 3];
 
-            if (owner == PLAYER_ID) continue;
+            if (troop.owner == PLAYER_ID) continue;
+            if (troopMap[troop.hash()]) {
+                continue;
+            }
 
-            g_troopCheck[y][x][g_currentTime] = true;
-            vector <AttackLine> atl = g_attackField[y][x];
+            g_troopCheck[troop.y][troop.x][g_currentTime] = true;
+            vector <AttackLine> atl = g_attackField[troop.y][troop.x];
             int s = atl.size();
 
             for (int j = 0; j < s; j++) {
                 AttackLine at = atl[j];
-                if (g_baseList[at.target].owner != PLAYER_ID) continue;
 
                 bool b1 = g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1];
 
@@ -294,7 +312,16 @@ public:
                     } else {
                         base->attackedTime = g_currentTime + at.arrivalTime;
                     }
-                    //fprintf(stderr, "Owner %d attack: %d -> %d (%d)\n", owner, at.source, at.target, size);
+
+                    if (atl.size() == 2) {
+                        troop.source = at.source;
+                        troop.target = at.target;
+                        troop.arrivalTime = g_currentTime + at.arrivalTime;
+                        troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
+                        g_enemyTroopList.push_back(troop);
+                        fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source,
+                                at.target, troop.size);
+                    }
                 }
             }
         }
