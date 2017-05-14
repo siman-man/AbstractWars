@@ -252,15 +252,6 @@ public:
                 base->growthRate = size - base->size;
             }
 
-            if (g_currentTime > 1 && ownerId != PLAYER_ID && base->size > size) {
-                Owner *owner = getOwner(ownerId);
-
-                if (abs(base->size - 2 * size) <= 15) {
-                    owner->totalAttackT += base->size;
-                    owner->attackUpdateCount++;
-                }
-            }
-
             base->size = bases[2 * i + 1];
 
             if (g_currentTime > 1) {
@@ -304,6 +295,8 @@ public:
             troop.size = troops[4 * i + 1];
             troop.x = troops[4 * i + 2];
             troop.y = troops[4 * i + 3];
+            g_ownerList[troop.owner].totalAttackT += 2 * troop.size;
+            g_ownerList[troop.owner].attackUpdateCount++;
 
             if (troop.owner == PLAYER_ID) continue;
             if (troopMap[troop.hash()]) {
