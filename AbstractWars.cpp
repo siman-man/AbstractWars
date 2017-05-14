@@ -19,7 +19,6 @@ int g_baseCount;
 int g_ownerCount;
 int g_speed;
 int g_baseTime[MAX_BASE_COUNT][MAX_BASE_COUNT];
-bool g_attackCheck[MAX_BASE_COUNT][MAX_BASE_COUNT][SIMULATION_TIME];
 bool g_troopCheck[S][S][SIMULATION_TIME];
 
 double calcDist(int y1, int x1, int y2, int x2) {
@@ -282,8 +281,6 @@ public:
             for (int j = 0; j < s; j++) {
                 AttackLine at = atl[j];
                 if (g_baseList[at.target].owner != PLAYER_ID) continue;
-
-                g_attackCheck[at.source][at.target][g_currentTime] = true;
 
                 bool b1 = g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1];
 
