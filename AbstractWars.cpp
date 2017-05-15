@@ -69,18 +69,20 @@ struct AttackData {
 vector <AttackLine> g_attackField[S][S];
 
 struct Owner {
-    double power;
     int baseCount;
     int unitSize;
     int totalAttackT;
     int attackUpdateCount;
+    double totalPower;
+    int powerCount;
 
     Owner() {
-        this->power = -1.0;
         this->baseCount = -1;
         this->unitSize = -1;
         this->totalAttackT = 0;
         this->attackUpdateCount = 0;
+        this->totalPower = 0.0;
+        this->powerCount = 0;
     }
 
     int attackT() {
@@ -88,6 +90,14 @@ struct Owner {
             return -1;
         } else {
             return this->totalAttackT / this->attackUpdateCount;
+        }
+    }
+
+    double power() {
+        if (this->powerCount == 0) {
+            return 1.0;
+        } else {
+            return this->totalPower / this->powerCount;
         }
     }
 };
@@ -271,9 +281,6 @@ public:
 
             for (int i = 0; i <= g_ownerCount; i++) {
                 Owner owner;
-                if (i == PLAYER_ID) {
-                    owner.power = 1.0;
-                }
                 g_ownerList.push_back(owner);
             }
         }
@@ -290,6 +297,25 @@ public:
             Troop *troop = &g_enemyTroopList[i];
             troop->updateStep();
             troopMap[troop->hash()] = true;
+
+            if (g_currentTime == troop->arrivalTime) {
+                Base *target = getBase(troop->target);
+
+                if (target->owner != PLAYER_ID) continue;
+
+                if (target->ownerHistory[g_currentTime] == target->ownerHistory[g_currentTime - 1]) {
+                    int diff = target->growthRate + target->sizeHistory[g_currentTime - 1] / 100 +
+                               target->sizeHistory[g_currentTime - 1] - target->sizeHistory[g_currentTime];
+                    double power = diff / (double) troop->size;
+
+                    if (1.0 <= power && power <= 1.2) {
+                        g_ownerList[troop->owner].totalPower += power;
+                        g_ownerList[troop->owner].powerCount++;
+
+                        // fprintf(stderr, "%4d: Owner %d: power = %f\n", g_currentTime, troop->owner, g_ownerList[troop->owner].power());
+                    }
+                }
+            }
         }
 
         g_enemyTroopList.erase(std::remove_if(g_enemyTroopList.begin(), g_enemyTroopList.end(),
