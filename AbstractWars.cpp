@@ -5,6 +5,8 @@
 #include <map>
 #include <cstdlib>
 #include <iostream>
+#include <string.h>
+#include <limits.h>
 #include <vector>
 
 using namespace std;
