@@ -125,7 +125,12 @@ struct Base {
 
             for (int j = 0; j < this->attackHistory[i].size(); j++) {
                 AttackData at = this->attackHistory[i][j];
-                s -= at.size;
+
+                if (o == at.owner) {
+                    s += at.size;
+                } else {
+                    s -= at.size;
+                }
 
                 if (s < 0) {
                     o = at.owner;
