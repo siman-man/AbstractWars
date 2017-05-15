@@ -403,7 +403,7 @@ public:
         // compile the list of bases owned by other players
         others.resize(0);
         for (int i = 0; i < B; ++i)
-            if (bases[2 * i] != 0)
+            if (bases[2 * i] != PLAYER_ID)
                 others.push_back(i);
         if (others.size() == 0) {
             // noone to fight!
@@ -415,7 +415,7 @@ public:
             Base *base = getBase(i);
             if (base->size < 2) continue;
 
-            if (bases[2 * i] == 0 && (bases[2 * i + 1] >= 1000 || g_currentTime <= 40)) {
+            if (bases[2 * i] == PLAYER_ID && (bases[2 * i + 1] >= 1000 || g_currentTime <= 40)) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
 
