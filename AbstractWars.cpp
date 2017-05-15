@@ -136,10 +136,12 @@ struct Base {
             for (int j = 0; j < this->attackHistory[i].size(); j++) {
                 AttackData at = this->attackHistory[i][j];
 
+                int size = at.size * (g_ownerList[at.owner].power() / g_ownerList[o].power());
+
                 if (o == at.owner) {
-                    s += at.size;
+                    s += size;
                 } else {
-                    s -= at.size;
+                    s -= size;
                 }
 
                 if (s < 0) {
