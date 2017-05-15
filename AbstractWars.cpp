@@ -134,7 +134,7 @@ struct Base {
 
                 if (s < 0) {
                     o = at.owner;
-                    attackT = (g_ownerList[o].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
+                    attackT = (g_ownerList[o].attackT() == -1) ? 1000 : g_ownerList[o].attackT();
                     s *= -1;
                 }
             }
