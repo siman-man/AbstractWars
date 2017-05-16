@@ -443,11 +443,13 @@ public:
         updateOwnerData();
         // compile the list of bases owned by other players
         others.resize(0);
-        for (int i = 0; i < B; ++i)
-            if (bases[2 * i] != PLAYER_ID)
+        for (int i = 0; i < B; ++i) {
+            if (bases[2 * i] != PLAYER_ID) {
                 others.push_back(i);
+            }
+        }
+
         if (others.size() == 0) {
-            // noone to fight!
             return vector<int>(0);
         }
 
