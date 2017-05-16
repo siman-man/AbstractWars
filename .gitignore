@@ -8,3 +8,4 @@ Rakefile
 parse.rb
 .idea
 cmake-build-debug
+output
