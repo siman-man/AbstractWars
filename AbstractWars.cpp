@@ -424,6 +424,7 @@ public:
             int owner = g_baseList[ind].ownerHistory[min(g_currentTime + T, SIMULATION_TIME)];
 
             if (owner == PLAYER_ID) continue;
+            if (g_currentTime <= 40 && T > 50) continue;
             int osize = g_baseList[ind].sizeHistory[min(g_currentTime + T, SIMULATION_TIME)];
 
             if (minDist > dist && (!warning || osize < source->size * 0.5)) {
