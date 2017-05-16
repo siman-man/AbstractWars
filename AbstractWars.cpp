@@ -286,6 +286,14 @@ public:
                 g_ownerList.push_back(owner);
             }
         }
+
+        for (int sourceId = 0; sourceId < g_baseCount; sourceId++) {
+            Base *source = getBase(sourceId);
+
+            for (int targetId = 0; targetId < g_baseCount; targetId++) {
+                Base *target = getBase(targetId);
+            }
+        }
     }
 
     void updateTroopData(vector<int> &troops) {
