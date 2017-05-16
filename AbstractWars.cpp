@@ -459,7 +459,7 @@ public:
             Base *base = getBase(i);
             if (base->size < 2) continue;
 
-            if (bases[2 * i] == PLAYER_ID && (bases[2 * i + 1] >= 1000 || g_currentTime <= 40)) {
+            if (base->owner == PLAYER_ID && (base->size >= 1000 || g_currentTime <= 40)) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
 
