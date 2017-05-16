@@ -353,30 +353,28 @@ public:
             for (int j = 0; j < s; j++) {
                 AttackLine at = atl[j];
 
-                bool b1 = g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1];
+                if (!g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1]) continue;
 
-                if (b1) {
-                    Base *base = getBase(at.target);
+                Base *base = getBase(at.target);
 
-                    if (atl.size() == 2) {
-                        troop.source = at.source;
-                        troop.target = at.target;
-                        troop.arrivalTime = g_currentTime + at.arrivalTime;
-                        troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
+                if (atl.size() == 2) {
+                    troop.source = at.source;
+                    troop.target = at.target;
+                    troop.arrivalTime = g_currentTime + at.arrivalTime;
+                    troop.created_at = g_currentTime - (g_baseTime[at.source][at.target] - at.arrivalTime);
 
-                        if (troop.arrivalTime <= SIMULATION_TIME) {
-                            g_enemyTroopList.push_back(troop);
-                            g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
-                                    AttackData(troop.owner, troop.size));
+                    if (troop.arrivalTime <= SIMULATION_TIME) {
+                        g_enemyTroopList.push_back(troop);
+                        g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
+                                AttackData(troop.owner, troop.size));
 
-                            if (base->attackedTime >= g_currentTime) {
-                                base->attackedTime = min(base->attackedTime, troop.arrivalTime);
-                            } else {
-                                base->attackedTime = troop.arrivalTime;
-                            }
+                        if (base->attackedTime >= g_currentTime) {
+                            base->attackedTime = min(base->attackedTime, troop.arrivalTime);
+                        } else {
+                            base->attackedTime = troop.arrivalTime;
                         }
-                        // fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source, at.target, troop.size);
                     }
+                    // fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source, at.target, troop.size);
                 }
             }
         }
@@ -472,6 +470,7 @@ public:
                 }
             }
         }
+
         return att;
     }
 
