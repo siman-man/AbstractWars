@@ -456,8 +456,21 @@ public:
         for (int i = 0; i < B; ++i) {
             Base *base = getBase(i);
             if (base->size < 2) continue;
+            if (base->owner != PLAYER_ID) continue;
 
-            if (base->owner == PLAYER_ID && (base->size > 991 - base->growthRate || g_currentTime <= 40)) {
+            int size = base->size;
+
+            for (int j = 0; j < base->attackHistory[g_currentTime + 1].size(); j++) {
+                AttackData at = base->attackHistory[g_currentTime + 1][j];
+
+                if (at.owner == PLAYER_ID) {
+                    size += at.size;
+                } else {
+                    size -= at.size;
+                }
+            }
+
+            if (base->owner == PLAYER_ID && (size > 991 - base->growthRate || g_currentTime <= 40)) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
 
