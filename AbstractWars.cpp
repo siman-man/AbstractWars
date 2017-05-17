@@ -114,6 +114,7 @@ struct Base {
     int attackedTime;
     int sizeHistory[SIMULATION_TIME + 10];
     int ownerHistory[SIMULATION_TIME + 10];
+    bool targeted;
     vector <AttackData> attackHistory[SIMULATION_TIME + 10];
 
     Base() {
@@ -262,6 +263,7 @@ public:
     void updateBaseData(vector<int> &bases) {
         for (int i = 0; i < g_baseCount; i++) {
             Base *base = getBase(i);
+            base->targeted = false;
             int ownerId = bases[2 * i];
             int size = bases[2 * i + 1];
             base->owner = ownerId;
@@ -459,6 +461,7 @@ public:
 
             if (owner == PLAYER_ID) continue;
             if (T > 50) continue;
+            if (source->growthRate <= 1 && !base->targeted) continue;
 
             if (minDist > dist) {
                 minDist = dist;
@@ -513,63 +516,69 @@ public:
         }
 
         vector<int> att;
-        for (int i = 0; i < B; ++i) {
-            Base *base = getBase(i);
+        for (int g = 3; g >= 1; g--) {
+            for (int i = 0; i < B; ++i) {
+                Base *base = getBase(i);
 
-            if (base->owner != PLAYER_ID) continue;
+                if (base->growthRate != g) continue;
+                if (base->owner != PLAYER_ID) continue;
 
-            if (base->size == 0) {
-                int helpId = helpMe(i);
+                if (base->size == 0) {
+                    int helpId = helpMe(i);
 
-                if (helpId != -1) {
-                    int arrivalTime = min(g_currentTime + g_baseTime[helpId][i], SIMULATION_TIME);
+                    if (helpId != -1) {
+                        int arrivalTime = min(g_currentTime + g_baseTime[helpId][i], SIMULATION_TIME);
 
-                    if (base->sizeHistory[arrivalTime - 1] == 0) {
-                        att.push_back(helpId);
-                        att.push_back(i);
+                        if (base->sizeHistory[arrivalTime - 1] == 0) {
+                            att.push_back(helpId);
+                            att.push_back(i);
 
-                        g_baseList[i].attackHistory[arrivalTime].push_back(
-                                AttackData(PLAYER_ID, g_baseList[helpId].size / 2));
+                            g_baseList[i].attackHistory[arrivalTime].push_back(
+                                    AttackData(PLAYER_ID, g_baseList[helpId].size / 2));
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (base->size < 2) continue;
+
+                int size = base->size;
+
+                for (int j = 0; j < base->attackHistory[g_currentTime + 1].size(); j++) {
+                    AttackData at = base->attackHistory[g_currentTime + 1][j];
+
+                    if (at.owner == PLAYER_ID) {
+                        size += at.size;
+                    } else {
+                        size -= at.size;
                     }
                 }
 
-                continue;
-            }
+                if (size > 991 - base->growthRate) {
+                    // send troops to a random base of different ownership
+                    int targetId = getRandomBase(i);
 
-            if (base->size < 2) continue;
+                    if (targetId != -1) {
+                        att.push_back(i);
+                        att.push_back(targetId);
 
-            int size = base->size;
+                        int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
+                        g_baseList[targetId].attackHistory[arrivalTime].push_back(
+                                AttackData(PLAYER_ID, base->size / 2));
+                    }
+                } else if (g_currentTime <= 60) {
+                    int targetId = earlyAttack(i);
 
-            for (int j = 0; j < base->attackHistory[g_currentTime + 1].size(); j++) {
-                AttackData at = base->attackHistory[g_currentTime + 1][j];
+                    if (targetId != -1) {
+                        att.push_back(i);
+                        att.push_back(targetId);
 
-                if (at.owner == PLAYER_ID) {
-                    size += at.size;
-                } else {
-                    size -= at.size;
-                }
-            }
-
-            if (size > 991 - base->growthRate) {
-                // send troops to a random base of different ownership
-                int targetId = getRandomBase(i);
-
-                if (targetId != -1) {
-                    att.push_back(i);
-                    att.push_back(targetId);
-
-                    int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
-                    g_baseList[targetId].attackHistory[arrivalTime].push_back(AttackData(PLAYER_ID, base->size / 2));
-                }
-            } else if (g_currentTime <= 40) {
-                int targetId = earlyAttack(i);
-
-                if (targetId != -1) {
-                    att.push_back(i);
-                    att.push_back(targetId);
-
-                    int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
-                    g_baseList[targetId].attackHistory[arrivalTime].push_back(AttackData(PLAYER_ID, base->size / 2));
+                        g_baseList[targetId].targeted = true;
+                        int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
+                        g_baseList[targetId].attackHistory[arrivalTime].push_back(
+                                AttackData(PLAYER_ID, base->size / 2));
+                    }
                 }
             }
         }
