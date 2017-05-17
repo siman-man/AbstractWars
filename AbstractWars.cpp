@@ -423,13 +423,14 @@ public:
             double dist = calcDist(source->y, source->x, base->y, base->x);
             int T = g_baseTime[sourceInd][ind];
             int arrivalTime = g_currentTime + T;
-            int owner = g_baseList[ind].ownerHistory[min(arrivalTime, SIMULATION_TIME)];
+
+            int owner = base->ownerHistory[min(arrivalTime, SIMULATION_TIME)];
+            int msize = base->sizeHistory[min(arrivalTime, SIMULATION_TIME)];
 
             if (owner == PLAYER_ID) continue;
             if (g_currentTime <= 40 && T > 50) continue;
-            int osize = g_baseList[ind].sizeHistory[min(arrivalTime, SIMULATION_TIME)];
 
-            if (minDist > dist && (!warning || osize < source->size * 0.5)) {
+            if (minDist > dist && (!warning || msize < source->size * 0.5)) {
                 minDist = dist;
                 targetId = ind;
             }
