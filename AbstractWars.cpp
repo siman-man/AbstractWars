@@ -481,6 +481,7 @@ public:
             int ind = players[i];
             if (sourceInd == ind) continue;
             Base *base = getBase(ind);
+            if (base->size < 2) continue;
             double dist = calcDist(source->y, source->x, base->y, base->x);
 
             if (minDist > dist) {
