@@ -14,6 +14,7 @@ using namespace std;
 const int PLAYER_ID = 0;
 
 const int SIMULATION_TIME = 2000;
+const int PERSON_CAP = 1000;
 const int MAX_BASE_COUNT = 100;
 const int S = 600;
 
@@ -150,6 +151,8 @@ struct Base {
                     s *= -1;
                 }
             }
+
+            s = min(s, PERSON_CAP);
 
             if (s >= attackT) {
                 s /= 2;
