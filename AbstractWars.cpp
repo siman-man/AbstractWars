@@ -428,7 +428,6 @@ public:
             int msize = base->sizeHistory[min(arrivalTime, SIMULATION_TIME)];
 
             if (owner == PLAYER_ID) continue;
-            if (g_currentTime <= 40 && T > 50) continue;
 
             if (minDist > dist && (!warning || msize < source->size * 0.5)) {
                 minDist = dist;
@@ -438,6 +437,36 @@ public:
 
         return targetId;
     }
+
+    // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
+    int earlyAttack(int sourceInd) {
+        Base *source = getBase(sourceInd);
+        int targetId = -1;
+        int minDist = INT_MAX;
+
+        for (int i = 0; i < (int) others.size(); ++i) {
+            int ind = others[i];
+            Base *base = getBase(ind);
+            double dist = calcDist(source->y, source->x, base->y, base->x);
+            int T = g_baseTime[sourceInd][ind];
+            int arrivalTime = g_currentTime + T;
+
+            int owner = base->ownerHistory[min(arrivalTime, SIMULATION_TIME)];
+            int msize = base->sizeHistory[min(arrivalTime, SIMULATION_TIME)];
+
+            if (owner == PLAYER_ID) continue;
+            if (T > 50) continue;
+
+            if (minDist > dist) {
+                minDist = dist;
+                targetId = ind;
+            }
+        }
+
+        return targetId;
+    }
+
+    // ----------------------------------------------
 
     // ----------------------------------------------
     vector<int> sendTroops(vector<int> bases, vector<int> troops) {
@@ -475,9 +504,19 @@ public:
                 }
             }
 
-            if (base->owner == PLAYER_ID && (size > 991 - base->growthRate || g_currentTime <= 40)) {
+            if (size > 991 - base->growthRate) {
                 // send troops to a random base of different ownership
                 int targetId = getRandomBase(i);
+
+                if (targetId != -1) {
+                    att.push_back(i);
+                    att.push_back(targetId);
+
+                    int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
+                    g_baseList[targetId].attackHistory[arrivalTime].push_back(AttackData(PLAYER_ID, base->size / 2));
+                }
+            } else if (g_currentTime <= 40) {
+                int targetId = earlyAttack(i);
 
                 if (targetId != -1) {
                     att.push_back(i);
