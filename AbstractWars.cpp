@@ -132,7 +132,9 @@ struct Base {
         int attackT = (g_ownerList[this->owner].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
 
         for (int i = g_currentTime + 1; i < min(g_currentTime + 300, SIMULATION_TIME); i++) {
-            s += this->growthRate + s / 100;
+            if (s > 0) {
+                s += this->growthRate + s / 100;
+            }
 
             for (int j = 0; j < this->attackHistory[i].size(); j++) {
                 AttackData at = this->attackHistory[i][j];
@@ -409,6 +411,7 @@ public:
 
     // ----------------------------------------------
     vector<int> others;
+    vector<int> players;
 
     // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int getRandomBase(int sourceInd) {
@@ -466,6 +469,26 @@ public:
         return targetId;
     }
 
+    int helpMe(int sourceInd) {
+        Base *source = getBase(sourceInd);
+        int targetId = -1;
+        int minDist = INT_MAX;
+
+        for (int i = 0; i < (int) players.size(); ++i) {
+            int ind = players[i];
+            if (sourceInd == ind) continue;
+            Base *base = getBase(ind);
+            double dist = calcDist(source->y, source->x, base->y, base->x);
+
+            if (minDist > dist) {
+                minDist = dist;
+                targetId = ind;
+            }
+        }
+
+        return targetId;
+    }
+
     // ----------------------------------------------
 
     // ----------------------------------------------
@@ -476,9 +499,12 @@ public:
         updateOwnerData();
         // compile the list of bases owned by other players
         others.resize(0);
+        players.resize(0);
         for (int i = 0; i < B; ++i) {
             if (bases[2 * i] != PLAYER_ID) {
                 others.push_back(i);
+            } else {
+                players.push_back(i);
             }
         }
 
@@ -489,8 +515,28 @@ public:
         vector<int> att;
         for (int i = 0; i < B; ++i) {
             Base *base = getBase(i);
-            if (base->size < 2) continue;
+
             if (base->owner != PLAYER_ID) continue;
+
+            if (base->size == 0) {
+                int helpId = helpMe(i);
+
+                if (helpId != -1) {
+                    int arrivalTime = min(g_currentTime + g_baseTime[helpId][i], SIMULATION_TIME);
+
+                    if (base->sizeHistory[arrivalTime - 1] == 0) {
+                        att.push_back(helpId);
+                        att.push_back(i);
+
+                        g_baseList[i].attackHistory[arrivalTime].push_back(
+                                AttackData(PLAYER_ID, g_baseList[helpId].size / 2));
+                    }
+                }
+
+                continue;
+            }
+
+            if (base->size < 2) continue;
 
             int size = base->size;
 
