@@ -132,7 +132,7 @@ struct Base {
         int o = this->owner;
         int attackT = (g_ownerList[this->owner].attackT() == -1) ? 1000 : g_ownerList[this->owner].attackT();
 
-        for (int i = g_currentTime + 1; i < min(g_currentTime + 300, SIMULATION_TIME); i++) {
+        for (int i = g_currentTime + 1; i < min(g_currentTime + 1000, SIMULATION_TIME); i++) {
             if (s > 0) {
                 s += this->growthRate + s / 100;
             }
