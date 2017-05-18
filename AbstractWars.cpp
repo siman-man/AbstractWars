@@ -135,23 +135,28 @@ struct Base {
         for (int i = g_currentTime + 1; i < min(g_currentTime + 1000, SIMULATION_TIME); i++) {
             if (s > 0) {
                 s += this->growthRate + s / 100;
+                s = min(s, PERSON_CAP);
             }
 
             for (int j = 0; j < this->attackHistory[i].size(); j++) {
                 AttackData at = this->attackHistory[i][j];
 
-                int size = at.size * (g_ownerList[at.owner].power() / g_ownerList[o].power());
+                int town = at.owner;
+                int tsize = at.size;
 
-                if (o == at.owner) {
-                    s += size;
+                if (town == o) {
+                    s += tsize;
                 } else {
-                    s -= size;
-                }
+                    double pTroop = tsize * g_ownerList[town].power();
+                    double pBase = s * g_ownerList[o].power();
 
-                if (s < 0) {
-                    o = at.owner;
-                    attackT = (g_ownerList[o].attackT() == -1) ? 1000 : g_ownerList[o].attackT();
-                    s *= -1;
+                    if (pBase >= pTroop) {
+                        s = max(0, s - (int) ceil(pTroop / g_ownerList[o].power()));
+                    } else {
+                        s = max(0, tsize - (int) ceil(pBase / g_ownerList[town].power()));
+                        o = town;
+                        attackT = (g_ownerList[o].attackT() == -1) ? 1000 : g_ownerList[o].attackT();
+                    }
                 }
             }
 
