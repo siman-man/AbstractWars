@@ -568,7 +568,7 @@ public:
                         g_baseList[targetId].attackHistory[arrivalTime].push_back(
                                 AttackData(PLAYER_ID, base->size / 2));
                     }
-                } else if (g_currentTime <= 60) {
+                } else if (g_currentTime <= 80) {
                     int targetId = earlyAttack(i);
 
                     if (targetId != -1) {
