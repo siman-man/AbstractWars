@@ -466,7 +466,7 @@ public:
 
             if (owner == PLAYER_ID) continue;
             if (T > 50) continue;
-            if (source->growthRate <= 1 && !base->targeted) continue;
+            if (source->growthRate <= 2 && !base->targeted) continue;
 
             if (minDist > dist) {
                 minDist = dist;
