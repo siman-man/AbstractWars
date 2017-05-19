@@ -44,15 +44,13 @@ struct Coord {
 struct AttackLine {
     int source;
     int target;
-    int beforeY;
-    int beforeX;
+    int beforeY[3];
+    int beforeX[3];
     int arrivalTime;
 
-    AttackLine(int source, int target, int beforeY, int beforeX, int arrivalTime) {
+    AttackLine(int source, int target, int arrivalTime) {
         this->source = source;
         this->target = target;
-        this->beforeY = beforeY;
-        this->beforeX = beforeX;
         this->arrivalTime = arrivalTime;
     }
 };
@@ -254,10 +252,17 @@ public:
                 if (fromId == targetId) continue;
 
                 int T = g_baseTime[fromId][targetId];
-                for (int t = 2; t < T; t++) {
+                for (int t = 4; t < T; t++) {
                     Coord coord = updateTroopCoord(fromId, targetId, t);
-                    Coord bcoord = updateTroopCoord(fromId, targetId, t - 1);
-                    g_attackField[coord.y][coord.x].push_back(AttackLine(fromId, targetId, bcoord.y, bcoord.x, T - t));
+                    AttackLine at(fromId, targetId, T - t);
+
+                    for (int i = 0; i < 3; i++) {
+                        Coord bcoord = updateTroopCoord(fromId, targetId, t - (i + 1));
+                        at.beforeY[i] = bcoord.y;
+                        at.beforeX[i] = bcoord.x;
+                    }
+
+                    g_attackField[coord.y][coord.x].push_back(at);
                 }
             }
         }
@@ -365,7 +370,9 @@ public:
             for (int j = 0; j < s; j++) {
                 AttackLine at = atl[j];
 
-                if (!g_troopCheck[at.beforeY][at.beforeX][g_currentTime - 1]) continue;
+                if (!g_troopCheck[at.beforeY[0]][at.beforeX[0]][g_currentTime - 1]) continue;
+                if (!g_troopCheck[at.beforeY[1]][at.beforeX[1]][g_currentTime - 2]) continue;
+                if (!g_troopCheck[at.beforeY[2]][at.beforeX[2]][g_currentTime - 3]) continue;
 
                 Base *base = getBase(at.target);
 
