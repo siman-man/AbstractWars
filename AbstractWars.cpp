@@ -160,8 +160,9 @@ struct Base {
 
             s = min(s, PERSON_CAP);
 
-            if (s >= attackT) {
-                s /= 2;
+            if (s > attackT) {
+                int ss = s / 2;
+                s -= ss;
             }
 
             this->sizeHistory[i] = s;
