@@ -441,10 +441,10 @@ public:
             int T = g_baseTime[sourceInd][ind];
             int arrivalTime = g_currentTime + T;
 
-            int owner = base->ownerHistory[min(arrivalTime, SIMULATION_TIME)];
+            int ownerId = base->ownerHistory[min(arrivalTime, SIMULATION_TIME)];
             int msize = base->sizeHistory[min(arrivalTime, SIMULATION_TIME)];
 
-            if (owner == PLAYER_ID) continue;
+            if (ownerId == PLAYER_ID) continue;
 
             if (minDist > dist && (!warning || msize < source->size * 0.5)) {
                 minDist = dist;
