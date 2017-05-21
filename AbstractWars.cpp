@@ -160,7 +160,7 @@ struct Base {
 
             s = min(s, PERSON_CAP);
 
-            if (s > attackT) {
+            if (s > attackT || s == PERSON_CAP) {
                 int ss = s / 2;
                 s -= ss;
             }
