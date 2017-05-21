@@ -216,7 +216,6 @@ vector <Troop> g_enemyTroopList;
 class AbstractWars {
 public:
     int B;
-    vector<int> baseX, baseY;
 
     // ----------------------------------------------
     int init(vector<int> baseLocations, int speed) {
@@ -227,19 +226,17 @@ public:
 
         fprintf(stderr, "B = %d, speed = %d\n", g_baseCount, g_speed);
 
-        srand(123);
         B = baseLocations.size() / 2;
         for (int i = 0; i < B; ++i) {
             Base base;
             base.x = baseLocations[2 * i];
             base.y = baseLocations[2 * i + 1];
             g_baseList.push_back(base);
-            baseX.push_back(baseLocations[2 * i]);
-            baseY.push_back(baseLocations[2 * i + 1]);
         }
 
         for (int fromId = 0; fromId < g_baseCount; fromId++) {
             Base *from = getBase(fromId);
+
             for (int toId = fromId + 1; toId < g_baseCount; toId++) {
                 Base *to = getBase(toId);
                 double dist = calcDist(from->y, from->x, to->y, to->x);
@@ -291,7 +288,7 @@ public:
                 base->growthRate = size - base->size;
             }
 
-            base->size = bases[2 * i + 1];
+            base->size = size;
 
             if (g_currentTime > 1) {
                 base->updateFutureSize();
@@ -341,8 +338,6 @@ public:
                     if (1.0 <= power && power <= 1.2) {
                         g_ownerList[troop->owner].totalPower += power;
                         g_ownerList[troop->owner].powerCount++;
-
-                        // fprintf(stderr, "%4d: Owner %d: power = %f\n", g_currentTime, troop->owner, g_ownerList[troop->owner].power());
                     }
                 }
             }
@@ -476,7 +471,6 @@ public:
             int arrivalTime = g_currentTime + T;
 
             int ownerId = base->ownerHistory[min(arrivalTime, SIMULATION_TIME)];
-            int msize = base->sizeHistory[min(arrivalTime, SIMULATION_TIME)];
 
             if (ownerId == PLAYER_ID) continue;
             if (T > 50) continue;
