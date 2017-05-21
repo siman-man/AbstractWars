@@ -428,7 +428,6 @@ public:
     vector<int> others;
     vector<int> players;
 
-    // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int getRandomBase(int sourceInd) {
         Base *source = getBase(sourceInd);
         int targetId = -1;
@@ -456,7 +455,6 @@ public:
         return targetId;
     }
 
-    // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int earlyAttack(int sourceInd) {
         Base *source = getBase(sourceInd);
         int targetId = -1;
