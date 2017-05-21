@@ -518,9 +518,9 @@ public:
         others.resize(0);
         players.resize(0);
         for (int i = 0; i < B; ++i) {
-            if (bases[2 * i] != PLAYER_ID) {
-                others.push_back(i);
-            } else {
+            others.push_back(i);
+
+            if (bases[2 * i] == PLAYER_ID) {
                 players.push_back(i);
             }
         }
