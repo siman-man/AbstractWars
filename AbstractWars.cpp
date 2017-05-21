@@ -109,7 +109,8 @@ struct Base {
     int owner;
     int size;
     int growthRate;
-    int attackedTime;
+    int minAttackedTime;
+    int maxAttackedTime;
     int sizeHistory[SIMULATION_TIME + 10];
     int ownerHistory[SIMULATION_TIME + 10];
     bool targeted;
@@ -121,7 +122,8 @@ struct Base {
         this->owner = -1;
         this->size = -1;
         this->growthRate = -1;
-        this->attackedTime = -1;
+        this->minAttackedTime = -1;
+        this->maxAttackedTime = -1;
         memset(this->sizeHistory, -1, sizeof(this->sizeHistory));
     }
 
@@ -388,10 +390,16 @@ public:
                         g_baseList[troop.target].attackHistory[troop.arrivalTime].push_back(
                                 AttackData(troop.owner, troop.size));
 
-                        if (base->attackedTime >= g_currentTime) {
-                            base->attackedTime = min(base->attackedTime, troop.arrivalTime);
+                        if (base->minAttackedTime >= g_currentTime) {
+                            base->minAttackedTime = min(base->minAttackedTime, troop.arrivalTime);
                         } else {
-                            base->attackedTime = troop.arrivalTime;
+                            base->minAttackedTime = troop.arrivalTime;
+                        }
+
+                        if (base->maxAttackedTime >= g_currentTime) {
+                            base->maxAttackedTime = max(base->maxAttackedTime, troop.arrivalTime);
+                        } else {
+                            base->maxAttackedTime = troop.arrivalTime;
                         }
                     }
                     // fprintf(stderr, "%4d: Owner %d attack: %d -> %d (%d)\n", g_currentTime, troop.owner, at.source, at.target, troop.size);
@@ -432,7 +440,7 @@ public:
         Base *source = getBase(sourceInd);
         int targetId = -1;
         int minDist = INT_MAX;
-        bool warning = (source->attackedTime >= g_currentTime && source->attackedTime - g_currentTime <= 30);
+        bool warning = (source->minAttackedTime >= g_currentTime && source->minAttackedTime - g_currentTime <= 30);
 
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
