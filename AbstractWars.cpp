@@ -113,7 +113,7 @@ struct Base {
     int maxAttackedTime;
     int sizeHistory[SIMULATION_TIME + 10];
     int ownerHistory[SIMULATION_TIME + 10];
-    bool targeted;
+    int targeted;
     vector <AttackData> attackHistory[SIMULATION_TIME + 10];
 
     Base() {
@@ -273,7 +273,7 @@ public:
     void updateBaseData(vector<int> &bases) {
         for (int i = 0; i < g_baseCount; i++) {
             Base *base = getBase(i);
-            base->targeted = false;
+            base->targeted = 0;
             int ownerId = bases[2 * i];
             int size = bases[2 * i + 1];
             base->owner = ownerId;
@@ -474,7 +474,7 @@ public:
 
             if (ownerId == PLAYER_ID) continue;
             if (T > 50) continue;
-            if (source->growthRate <= 2 && !base->targeted) continue;
+            if (source->growthRate <= 2 && base->targeted == 0) continue;
 
             if (minDist > dist) {
                 minDist = dist;
@@ -588,7 +588,7 @@ public:
                         att.push_back(i);
                         att.push_back(targetId);
 
-                        g_baseList[targetId].targeted = true;
+                        g_baseList[targetId].targeted += base->size / 2;
                         int arrivalTime = min(g_currentTime + g_baseTime[i][targetId], SIMULATION_TIME);
                         g_baseList[targetId].attackHistory[arrivalTime].push_back(
                                 AttackData(PLAYER_ID, base->size / 2));
