@@ -439,6 +439,8 @@ public:
 
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
+            if (sourceInd == ind) continue;
+
             Base *base = getBase(ind);
             double dist = calcDist(source->y, source->x, base->y, base->x);
             int T = g_baseTime[sourceInd][ind];
@@ -465,6 +467,8 @@ public:
 
         for (int i = 0; i < (int) others.size(); ++i) {
             int ind = others[i];
+            if (sourceInd == ind) continue;
+
             Base *base = getBase(ind);
             double dist = calcDist(source->y, source->x, base->y, base->x);
             int T = g_baseTime[sourceInd][ind];
