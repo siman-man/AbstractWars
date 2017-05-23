@@ -68,6 +68,7 @@ struct AttackData {
 vector <AttackLine> g_attackField[S][S];
 
 struct Owner {
+    int id;
     int baseCount;
     int unitSize;
     int totalAttackT;
@@ -104,6 +105,7 @@ struct Owner {
 vector <Owner> g_ownerList;
 
 struct Base {
+    int id;
     int y;
     int x;
     int owner;
@@ -229,6 +231,7 @@ public:
         B = baseLocations.size() / 2;
         for (int i = 0; i < B; ++i) {
             Base base;
+            base.id = i;
             base.x = baseLocations[2 * i];
             base.y = baseLocations[2 * i + 1];
             g_baseList.push_back(base);
@@ -300,6 +303,7 @@ public:
 
             for (int i = 0; i <= g_ownerCount; i++) {
                 Owner owner;
+                owner.id = i;
                 g_ownerList.push_back(owner);
             }
         }
