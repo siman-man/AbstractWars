@@ -1,4 +1,3 @@
-// C++11
 #include <algorithm>
 #include <cmath>
 #include <cassert>
